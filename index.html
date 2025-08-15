@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0, minimum-scale=1.0, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="format-detection" content="telephone=no">
+    <title>Catch the Falling Stars</title>
+    <style>
+        :root {
+            --vh: 1vh;
+        }
+        
+        * {
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -khtml-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            box-sizing: border-box;
+        }
+        
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: #222;
+            font-family: 'Comic Sans MS', cursive;
+        }
+        
+        body { 
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            height: calc(var(--vh, 1vh) * 100);
+            touch-action: manipulation;
+            position: relative;
+        }
+        canvas { 
+            display: block;
+            background: #1e2a38; 
+            border: 1px solid #fff; 
+            border-radius: 4px;
+            width: 100%;
+            height: 100%;
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            touch-action: none;
+        }
+        h1 { 
+            color: #fff; 
+            text-align: center; 
+            font-family: 'Comic Sans MS', cursive; 
+            margin: 0;
+            padding: 2px 0;
+            font-size: clamp(0.8rem, 3vw, 1.3rem);
+            flex-shrink: 0;
+            background: rgba(34, 34, 34, 0.9);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .game-container {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 1px;
+            min-height: 0;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        /* Mobile controls - Always visible and properly positioned */
+        .mobile-controls {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 12px;
+            z-index: 9999;
+            padding: 4px;
+            background: rgba(34, 34, 34, 0.95);
+            border-top: 1px solid rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(10px);
+            min-height: 50px;
+            box-sizing: border-box;
+            -webkit-backdrop-filter: blur(10px);
+        }
+        
+        .mobile-btn {
+            width: 45px;
+            height: 45px;
+            background: rgba(255, 255, 255, 0.25);
+            border: 1px solid #fff;
+            border-radius: 50%;
+            color: #fff;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            touch-action: manipulation;
+            user-select: none;
+            font-family: 'Comic Sans MS', cursive;
+            cursor: pointer;
+            transition: all 0.1s ease;
+            flex-shrink: 0;
+            font-weight: bold;
+            line-height: 1;
+        }
+        
+        .mobile-btn:active {
+            background: rgba(255, 255, 255, 0.4);
+            transform: scale(0.9);
+        }
+        
+        .mobile-btn.pressed {
+            background: rgba(255, 255, 255, 0.5);
+            box-shadow: 0 0 25px rgba(255, 255, 255, 0.7);
+            transform: scale(0.95);
+        }
+        
+        /* Desktop - Hide mobile controls */
+        @media (min-width: 769px) {
+            .mobile-controls {
+                display: none !important;
+            }
+        }
+        
+        /* Mobile devices - Show controls */
+        @media (max-width: 768px) {
+            .mobile-controls {
+                display: flex !important;
+            }
+            
+            .game-container {
+                padding-bottom: 55px; /* Space for controls */
+            }
+        }
+        
+        /* Small mobile devices */
+        @media (max-width: 480px) {
+            .mobile-btn {
+                width: 45px;
+                height: 45px;
+                font-size: 18px;
+            }
+            .mobile-controls {
+                gap: 12px;
+                padding: 5px;
+                min-height: 55px;
+            }
+            h1 {
+                font-size: clamp(0.8rem, 3.5vw, 1.2rem);
+                padding: 3px 0;
+            }
+        }
+        
+        /* Very small screens */
+        @media (max-width: 375px) {
+            .mobile-btn {
+                width: 42px;
+                height: 42px;
+                font-size: 16px;
+            }
+            .mobile-controls {
+                gap: 10px;
+                padding: 4px;
+                min-height: 50px;
+            }
+        }
+        
+        /* Short screens */
+        @media (max-height: 600px) {
+            .mobile-btn {
+                width: 48px;
+                height: 48px;
+                font-size: 19px;
+            }
+            .mobile-controls {
+                min-height: 60px;
+                padding: 6px;
+            }
+            h1 {
+                padding: 4px 0;
+                font-size: clamp(0.8rem, 3vw, 1.2rem);
+            }
+        }
+        
+        /* Extra short screens */
+        @media (max-height: 500px) {
+            .mobile-controls {
+                min-height: 50px;
+                padding: 4px;
+            }
+            .mobile-btn {
+                width: 42px;
+                height: 42px;
+                font-size: 16px;
+            }
+            h1 {
+                padding: 2px 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>Catch the Falling Stars!</h1>
+    <div class="game-container">
+        <canvas id="gameCanvas"></canvas>
+    </div>
+    
+    <!-- Mobile Touch Controls -->
+    <div class="mobile-controls">
+        <div class="mobile-btn" id="leftBtn">←</div>
+        <div class="mobile-btn" id="pauseBtn">⏸</div>
+        <div class="mobile-btn" id="rightBtn">→</div>
+    </div>
+    
+    <script>
+        // Make canvas responsive for mobile
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        function resizeCanvas() {
+            const isMobile = window.innerWidth <= 768;
+            
+            // Get viewport dimensions
+            const vw = window.innerWidth;
+            const vh = window.innerHeight;
+            
+            // Calculate available space
+            let availableWidth, availableHeight;
+            
+            if (isMobile) {
+                // Mobile layout calculations
+                const headerHeight = document.querySelector('h1')?.offsetHeight || 40;
+                const controlsHeight = 70; // Fixed controls height
+                const padding = 8; // Container padding
+                
+                availableWidth = vw - (padding * 2);
+                availableHeight = vh - headerHeight - controlsHeight - (padding * 2);
+                
+                // Ensure minimum viable sizes
+                availableWidth = Math.max(availableWidth, 280);
+                availableHeight = Math.max(availableHeight, 300);
+                
+                // Set maximum sizes for mobile
+                availableWidth = Math.min(availableWidth, 500);
+                availableHeight = Math.min(availableHeight, 700);
+            } else {
+                // Desktop layout
+                availableWidth = Math.min(vw * 0.9, 800);
+                availableHeight = Math.min(vh * 0.9, 600);
+            }
+            
+            // Set canvas dimensions
+            canvas.width = Math.floor(availableWidth);
+            canvas.height = Math.floor(availableHeight);
+            
+            // Set display size
+            canvas.style.width = canvas.width + 'px';
+            canvas.style.height = canvas.height + 'px';
+            
+            console.log(`Canvas resized to: ${canvas.width}x${canvas.height} (Mobile: ${isMobile})`);
+            
+            // Reinitialize game if it exists
+            if (window.game && typeof Basket !== 'undefined') {
+                setTimeout(() => {
+                    try {
+                        window.game.canvas = canvas;
+                        window.game.ctx = canvas.getContext('2d');
+                        window.game.basket = new Basket(canvas);
+                        window.game.bgStars = window.game.createBackgroundStars();
+                        window.game.render();
+                    } catch (e) {
+                        console.log('Game reinitialization skipped:', e.message);
+                    }
+                }, 100);
+            }
+        }
+        
+        // Fix viewport height on mobile browsers
+        function setViewportHeight() {
+            const vh = window.innerHeight * 0.01;
+            document.documentElement.style.setProperty('--vh', `${vh}px`);
+        }
+        
+        // Initialize viewport and canvas
+        function initialize() {
+            setViewportHeight();
+            resizeCanvas();
+        }
+        
+        // Event listeners
+        window.addEventListener('load', initialize);
+        window.addEventListener('resize', () => {
+            setViewportHeight();
+            setTimeout(resizeCanvas, 150);
+        });
+        window.addEventListener('orientationchange', () => {
+            setTimeout(() => {
+                setViewportHeight();
+                resizeCanvas();
+            }, 300);
+        });
+        
+        // Force mobile controls visibility on mobile devices
+        function ensureMobileControls() {
+            const isMobile = window.innerWidth <= 768;
+            const controls = document.querySelector('.mobile-controls');
+            if (controls && isMobile) {
+                controls.style.display = 'flex';
+                controls.style.position = 'fixed';
+                controls.style.bottom = '0';
+                controls.style.zIndex = '9999';
+            }
+        }
+        
+        // Initialize everything when DOM is ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => {
+                setTimeout(() => {
+                    initialize();
+                    ensureMobileControls();
+                }, 100);
+            });
+        } else {
+            setTimeout(() => {
+                initialize();
+                ensureMobileControls();
+            }, 100);
+        }
+        
+        // Mobile touch controls
+        let game;
+        window.game = null; // Make game globally accessible
+        const leftBtn = document.getElementById('leftBtn');
+        const rightBtn = document.getElementById('rightBtn');
+        const pauseBtn = document.getElementById('pauseBtn');
+        
+        // Touch event handlers for mobile controls
+        function addTouchControls() {
+            // Left button - Touch and Mouse events
+            leftBtn.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                leftBtn.classList.add('pressed');
+                if (game) game.leftPressed = true;
+            }, { passive: false });
+            
+            leftBtn.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                leftBtn.classList.remove('pressed');
+                if (game) game.leftPressed = false;
+            }, { passive: false });
+            
+            leftBtn.addEventListener('mousedown', (e) => {
+                e.preventDefault();
+                leftBtn.classList.add('pressed');
+                if (game) game.leftPressed = true;
+            });
+            
+            leftBtn.addEventListener('mouseup', (e) => {
+                e.preventDefault();
+                leftBtn.classList.remove('pressed');
+                if (game) game.leftPressed = false;
+            });
+            
+            // Right button - Touch and Mouse events
+            rightBtn.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                rightBtn.classList.add('pressed');
+                if (game) game.rightPressed = true;
+            }, { passive: false });
+            
+            rightBtn.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                rightBtn.classList.remove('pressed');
+                if (game) game.rightPressed = false;
+            }, { passive: false });
+            
+            rightBtn.addEventListener('mousedown', (e) => {
+                e.preventDefault();
+                rightBtn.classList.add('pressed');
+                if (game) game.rightPressed = true;
+            });
+            
+            rightBtn.addEventListener('mouseup', (e) => {
+                e.preventDefault();
+                rightBtn.classList.remove('pressed');
+                if (game) game.rightPressed = false;
+            });
+            
+            // Pause button
+            pauseBtn.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                pauseBtn.classList.add('pressed');
+            }, { passive: false });
+            
+            pauseBtn.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                pauseBtn.classList.remove('pressed');
+                if (game) {
+                    if (game.state === 'playing') {
+                        game.togglePause();
+                    } else if (game.state === 'paused') {
+                        game.togglePause();
+                    } else if (game.state === 'start' || game.state === 'gameover') {
+                        game.startGame();
+                    }
+                }
+            }, { passive: false });
+            
+            pauseBtn.addEventListener('mousedown', (e) => {
+                e.preventDefault();
+                pauseBtn.classList.add('pressed');
+            });
+            
+            pauseBtn.addEventListener('mouseup', (e) => {
+                e.preventDefault();
+                pauseBtn.classList.remove('pressed');
+                if (game) {
+                    if (game.state === 'playing') {
+                        game.togglePause();
+                    } else if (game.state === 'paused') {
+                        game.togglePause();
+                    } else if (game.state === 'start' || game.state === 'gameover') {
+                        game.startGame();
+                    }
+                }
+            });
+            
+            // Prevent scrolling and zooming on touch
+            document.addEventListener('touchmove', (e) => {
+                e.preventDefault();
+            }, { passive: false });
+            
+            document.addEventListener('gesturestart', (e) => {
+                e.preventDefault();
+            });
+        }
+        
+        // Initialize touch controls
+        addTouchControls();
+    </script>
+    <script src="game.js"></script>
+</body>
+</html>
